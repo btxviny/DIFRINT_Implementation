@@ -3,7 +3,7 @@ import numpy as np
 
 import tensorflow as tf
 from tensorflow.keras import layers 
-from flow_utils import bilinear_warp
+from DIFRINT_Implementation.flow_utils import bilinear_warp
 
 print('TensorFlow Version: ', tf.__version__)
 
