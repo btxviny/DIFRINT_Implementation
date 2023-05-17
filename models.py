@@ -1,5 +1,5 @@
 import tensorflow as tf
-from models.PWCDCNet import PWCDCNet
+from DIFRINT_Implementation.PWCDCNet import PWCDCNet
 import numpy as np
 import tensorflow_addons as tfa
 
