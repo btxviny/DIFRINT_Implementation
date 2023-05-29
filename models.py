@@ -1,5 +1,5 @@
 import tensorflow as tf
-from DIFRINT_Implementation.PWCDCNet import PWCDCNet
+from models.PWCDCNet import PWCDCNet
 import numpy as np
 import tensorflow_addons as tfa
 
@@ -90,7 +90,7 @@ class ResNet(tf.keras.Model):
         self.res4 = ResBlock(32)
         self.res5 = ResBlock(32)
         self.conv2 = ConvBlock(32, 3)
-        self.tanh = tf.keras.layers.Activation('tanh')
+        self.sigmoid = tf.keras.layers.Activation('sigmoid')
 
     def call(self, inputs):
         x = tf.concat(inputs, axis=-1)
@@ -101,7 +101,7 @@ class ResNet(tf.keras.Model):
         x = self.res4(x)
         x = self.res5(x)
         x = self.conv2(x)
-        x = self.tanh(x)
+        x = self.sigmoid(x)
         return x
 ###################################################################
 class Encoder(tf.keras.layers.Layer):
@@ -123,7 +123,7 @@ class Encoder(tf.keras.layers.Layer):
                 return feature * gate
             
 class Decoder(tf.keras.layers.Layer):
-            def __init__(self, in_nc, out_nc, stride, k_size=3, pad=1, tanh=False):
+            def __init__(self, in_nc, out_nc, stride, k_size=3, pad=1, sigmoid=False):
                 super(Decoder, self).__init__()
 
                 self.seq = tf.keras.Sequential([
@@ -131,8 +131,8 @@ class Decoder(tf.keras.layers.Layer):
                     tf.keras.layers.Conv2D(out_nc, kernel_size=k_size, strides=stride, padding='same')
                 ])
 
-                if tanh:
-                    self.activ = tf.keras.layers.Activation('tanh')
+                if sigmoid:
+                    self.activ = tf.keras.layers.Activation('sigmoid')
                 else:
                     self.activ = tf.keras.layers.LeakyReLU(0.2)
 
@@ -160,7 +160,7 @@ class UNet(tf.keras.Model):
         self.dec2 = Decoder(32+32, 32, stride=1)
         self.dec3 = Decoder(32+32, 32, stride=1)
 
-        self.dec4 = Decoder(32, 3, stride=1, tanh=True)
+        self.dec4 = Decoder(32, 3, stride=1, sigmoid =True)
 
     def call(self,input):
         s0 = self.enc0(input)
