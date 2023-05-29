@@ -11,19 +11,12 @@ class PWC(tf.keras.Model):
     def __init__(self):
         super(PWC,self).__init__()
         self.model = PWCDCNet()
-        #self.build(input_shape)
+        checkpoint = tf.train.Checkpoint(net=self.model)
+        latest_checkpoint = tf.train.latest_checkpoint('./checkpoints/') 
+        status = checkpoint.restore(latest_checkpoint).expect_partial()
+    
 
-    def build(self,input_shape):
-        b, h, w, c = input_shape
-        if h % 64 != 0 or w % 64 != 0:
-            new_h = (int(h/64) + 1) * 64
-            new_w = (int(w/64) + 1) * 64
-            input_shape = (b,new_h,new_w,c)
-        temp = tf.zeros((input_shape),dtype=tf.float32)
-        self.model(temp)
-        self.model.load_weights('pwc.h5')
-
-    def call(self,input):
+    def call(self,input,half=False):
         b,h,w,c = tf.unstack(tf.shape(input))
         if h % 64 != 0 or w % 64 != 0:
             new_h = (int(h/64) + 1) * 64
@@ -33,10 +26,13 @@ class PWC(tf.keras.Model):
         flows = tf.image.crop_to_bounding_box(flows, 0, 0, h//4, w//4)
         flows = tf.image.resize(flows, (h, w), method=tf.image.ResizeMethod.BILINEAR)
         input = tf.image.resize(input,(h,w), method = tf.image.ResizeMethod.BILINEAR)
-        flows *= 4
+        if not half:
+            flows *= 4
+        else:
+            flows *= 2
         frame = input[...,0:3]
         warped = tfa.image.dense_image_warp(frame,flows)
-        return(warped)
+        return warped, flows
 
 ##################################################################
 
